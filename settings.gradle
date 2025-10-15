@@ -1,1 +1,6 @@
 rootProject.name = 'pixservice'
+
+include 'domain'
+include 'application'
+include 'infrastructure'
+include 'main'
