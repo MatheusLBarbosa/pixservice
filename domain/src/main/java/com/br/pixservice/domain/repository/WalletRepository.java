@@ -1,6 +1,6 @@
-package com.br.pixservice.repository;
+package com.br.pixservice.domain.repository;
 
-import com.br.pixservice.model.Wallet;
+import com.br.pixservice.domain.model.Wallet;
 
 import java.math.BigDecimal;
 import java.util.Optional;

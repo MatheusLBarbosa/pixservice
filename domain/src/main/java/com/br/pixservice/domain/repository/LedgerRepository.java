@@ -1,6 +1,6 @@
-package com.br.pixservice.repository;
+package com.br.pixservice.domain.repository;
 
-import com.br.pixservice.model.LedgerEntry;
+import com.br.pixservice.domain.model.LedgerEntry;
 
 import java.time.OffsetDateTime;
 import java.util.List;

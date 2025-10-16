@@ -1,6 +1,6 @@
-package com.br.pixservice.repository;
+package com.br.pixservice.domain.repository;
 
-import com.br.pixservice.model.PixRecord;
+import com.br.pixservice.domain.model.PixRecord;
 
 import java.util.Optional;
 

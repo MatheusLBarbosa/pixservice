@@ -1,6 +1,6 @@
-package com.br.pixservice.repository;
+package com.br.pixservice.domain.repository;
 
-import com.br.pixservice.model.PixKey;
+import com.br.pixservice.domain.model.PixKey;
 
 import java.util.Optional;
 
@@ -11,4 +11,6 @@ public interface PixKeyRepository {
     Optional<PixKey> findByKeyValue(String keyValue);
 
     boolean existsByKeyValue(String keyValue);
+
+    boolean existsByKeyValueAndWalletId(String keyValeu, String walletId);
 }

@@ -1,6 +1,6 @@
-package com.br.pixservice.repository;
+package com.br.pixservice.domain.repository;
 
-import com.br.pixservice.model.PixTransfer;
+import com.br.pixservice.domain.model.PixTransfer;
 
 import java.util.Optional;
 
