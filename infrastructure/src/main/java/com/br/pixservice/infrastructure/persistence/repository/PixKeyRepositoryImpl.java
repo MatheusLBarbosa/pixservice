@@ -4,9 +4,11 @@ import com.br.pixservice.domain.model.PixKey;
 import com.br.pixservice.domain.repository.PixKeyRepository;
 import com.br.pixservice.infrastructure.persistence.dao.PixKeyDAO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+@Repository
 @RequiredArgsConstructor
 public class PixKeyRepositoryImpl implements PixKeyRepository {
 

@@ -1,6 +1,8 @@
 package com.br.pixservice.infrastructure.persistence.entity;
 
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -12,6 +14,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Document(collection = "wallets")
 @Data
@@ -34,9 +37,11 @@ public class WalletEntity {
     @Version
     private Long version;
 
+    @CreatedDate
     @Field("created_at")
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
+    @LastModifiedDate
     @Field("updated_at")
-    private Instant updatedAt;
+    private LocalDateTime updatedAt;
 }

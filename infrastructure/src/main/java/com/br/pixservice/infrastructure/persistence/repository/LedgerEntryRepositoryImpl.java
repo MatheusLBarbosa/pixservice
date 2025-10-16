@@ -4,10 +4,12 @@ import com.br.pixservice.domain.model.LedgerEntry;
 import com.br.pixservice.domain.repository.LedgerRepository;
 import com.br.pixservice.infrastructure.persistence.dao.LedgerEntryDAO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 
+@Repository
 @RequiredArgsConstructor
 public class LedgerEntryRepositoryImpl implements LedgerRepository {
 

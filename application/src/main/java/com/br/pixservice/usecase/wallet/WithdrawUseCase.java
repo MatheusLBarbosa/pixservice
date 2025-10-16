@@ -5,16 +5,18 @@ import com.br.pixservice.domain.model.Wallet;
 import com.br.pixservice.domain.repository.LedgerRepository;
 import com.br.pixservice.domain.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
+@Component
 @RequiredArgsConstructor
 public class WithdrawUseCase {
     private final WalletRepository walletRepository;
     private final LedgerRepository ledgerRepository;
 
-    Wallet execute(String walletId, BigDecimal amount, String reason) {
+    public Wallet execute(String walletId, BigDecimal amount, String reason) {
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new IllegalArgumentException("Wallet not found"));
 
@@ -26,7 +28,7 @@ public class WithdrawUseCase {
 
         walletRepository.updateBalance(walletId, newBalance, wallet.getVersion());
 
-        LedgerEntry entry = LedgerEntry.createDebit(walletId, UUID.randomUUID(), amount.negate());
+        LedgerEntry entry = LedgerEntry.createDebit(walletId, UUID.randomUUID().toString(), amount.negate());
 
         ledgerRepository.save(entry);
 

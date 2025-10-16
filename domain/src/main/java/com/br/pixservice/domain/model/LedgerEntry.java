@@ -17,7 +17,7 @@ public class LedgerEntry {
 
     private String id;
     private String walletId;
-    private UUID endToEndId;
+    private String endToEndId;
     private BigDecimal amount;
     private LedgerEntryType type;
     private Instant createdAt;
@@ -37,7 +37,7 @@ public class LedgerEntry {
         return LedgerEntryType.DEBIT.equals(type);
     }
 
-    public static LedgerEntry createCredit(String walletId, UUID endToEndId, BigDecimal amount) {
+    public static LedgerEntry createCredit(String walletId, String endToEndId, BigDecimal amount) {
         return LedgerEntry.builder()
                 .walletId(walletId)
                 .endToEndId(endToEndId)
@@ -47,7 +47,7 @@ public class LedgerEntry {
                 .build();
     }
 
-    public static LedgerEntry createDebit(String walletId, UUID endToEndId, BigDecimal amount) {
+    public static LedgerEntry createDebit(String walletId, String endToEndId, BigDecimal amount) {
         return LedgerEntry.builder()
                 .walletId(walletId)
                 .endToEndId(endToEndId)

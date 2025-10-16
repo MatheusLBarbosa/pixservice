@@ -1,5 +1,6 @@
 package com.br.pixservice.infrastructure.persistence.entity;
 
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -30,6 +31,7 @@ public class PixRecordEntity {
     @Field("result")
     private String result;
 
+    @CreatedDate
     @Field("created_at")
     private Instant createdAt;
 }

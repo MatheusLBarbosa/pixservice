@@ -4,6 +4,8 @@ import com.br.pixservice.domain.model.LedgerEntry;
 import com.br.pixservice.infrastructure.persistence.entity.LedgerEntryEntity;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @NoArgsConstructor
 public class LedgerEntryDAO {
 
@@ -12,7 +14,7 @@ public class LedgerEntryDAO {
                 .walletId(domain.getWalletId())
                 .amount(domain.getAmount())
                 .type(domain.getType())
-                .endToEndId(domain.getEndToEndId())
+                .endToEndId(UUID.fromString(domain.getEndToEndId()))
                 .createdAt(domain.getCreatedAt())
                 .build();
     }
@@ -21,7 +23,7 @@ public class LedgerEntryDAO {
         return LedgerEntry.builder()
                 .walletId(entity.getWalletId())
                 .amount(entity.getAmount())
-                .endToEndId(entity.getEndToEndId())
+                .endToEndId(String.valueOf(entity.getEndToEndId()))
                 .type(entity.getType())
                 .createdAt(entity.getCreatedAt())
                 .build();

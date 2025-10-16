@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -24,7 +25,7 @@ public class PixTransfer {
     private Instant updatedAt;
 
     public boolean isValid() {
-        return endToEndId != null && !endToEndId.trim().isEmpty() &&
+        return endToEndId != null &&
                sourceWalletId != null && !sourceWalletId.trim().isEmpty() &&
                targetWalletId != null && !targetWalletId.trim().isEmpty() &&
                amount != null && amount.compareTo(BigDecimal.ZERO) > 0 &&
