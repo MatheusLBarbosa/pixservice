@@ -1,4 +1,4 @@
-package com.br.pixservice.model;
+package com.br.pixservice.domain.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

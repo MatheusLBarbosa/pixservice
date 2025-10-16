@@ -1,4 +1,4 @@
-package com.br.pixservice.model;
+package com.br.pixservice.domain.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,13 +17,17 @@ public class PixKey {
     private String walletId;
 
     public boolean isValid() {
-        return key != null && !key.trim().isEmpty() && 
-               type != null && !type.trim().isEmpty() &&
-               walletId != null && !walletId.trim().isEmpty();
+        return key != null && !key.trim().isEmpty() &&
+                type != null && !type.trim().isEmpty() &&
+                walletId != null && !walletId.trim().isEmpty();
     }
 
     public boolean isCpfKey() {
         return "CPF".equals(type);
+    }
+
+    public boolean isCnpjKey() {
+        return "CNPJ".equals(type);
     }
 
     public boolean isEmailKey() {
@@ -38,3 +42,5 @@ public class PixKey {
         return "EVP".equals(type);
     }
 }
+
+

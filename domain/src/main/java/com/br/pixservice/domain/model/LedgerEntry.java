@@ -1,4 +1,4 @@
-package com.br.pixservice.model;
+package com.br.pixservice.domain.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -16,42 +17,42 @@ public class LedgerEntry {
 
     private String id;
     private String walletId;
-    private String endToEndId;
+    private UUID endToEndId;
     private BigDecimal amount;
-    private String type;
+    private LedgerEntryType type;
     private Instant createdAt;
 
     public boolean isValid() {
         return walletId != null && !walletId.trim().isEmpty() &&
-               endToEndId != null && !endToEndId.trim().isEmpty() &&
+               endToEndId != null &&
                amount != null && amount.compareTo(BigDecimal.ZERO) > 0 &&
                type != null && (isCredit() || isDebit());
     }
 
     public boolean isCredit() {
-        return "CREDIT".equals(type);
+        return LedgerEntryType.CREDIT.equals(type);
     }
 
     public boolean isDebit() {
-        return "DEBIT".equals(type);
+        return LedgerEntryType.DEBIT.equals(type);
     }
 
-    public static LedgerEntry createCredit(String walletId, String endToEndId, BigDecimal amount) {
+    public static LedgerEntry createCredit(String walletId, UUID endToEndId, BigDecimal amount) {
         return LedgerEntry.builder()
                 .walletId(walletId)
                 .endToEndId(endToEndId)
                 .amount(amount)
-                .type("CREDIT")
+                .type(LedgerEntryType.CREDIT)
                 .createdAt(Instant.now())
                 .build();
     }
 
-    public static LedgerEntry createDebit(String walletId, String endToEndId, BigDecimal amount) {
+    public static LedgerEntry createDebit(String walletId, UUID endToEndId, BigDecimal amount) {
         return LedgerEntry.builder()
                 .walletId(walletId)
                 .endToEndId(endToEndId)
                 .amount(amount)
-                .type("DEBIT")
+                .type(LedgerEntryType.DEBIT)
                 .createdAt(Instant.now())
                 .build();
     }
