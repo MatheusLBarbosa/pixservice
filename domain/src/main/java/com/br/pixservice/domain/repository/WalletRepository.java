@@ -12,7 +12,5 @@ public interface WalletRepository {
 
     Optional<Wallet> findByDocumentNumber(String documentNumber);
 
-    void updateBalance(String walletId, BigDecimal newBalance, Long expectedVersion);
-
-    boolean existsByDocumentNumber(String documentNumber);
+    boolean updateBalance(String walletId, BigDecimal newBalance, Long expectedVersion);
 }

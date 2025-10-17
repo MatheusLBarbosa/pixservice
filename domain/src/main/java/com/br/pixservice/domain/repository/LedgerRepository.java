@@ -10,7 +10,7 @@ public interface LedgerRepository {
 
     List<LedgerEntry> findByWalletId(String walletId);
 
-    List<LedgerEntry> findByWalletIdAndBefore(String walletId, OffsetDateTime before);
+    List<LedgerEntry> findByWalletIdAndOccurredAt(String walletId, OffsetDateTime occurredAt);
 
     List<LedgerEntry> findByEndToEndId(String endToEndId);
 }

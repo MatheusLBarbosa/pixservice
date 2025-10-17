@@ -26,7 +26,7 @@ public class LedgerEntryRepositoryImpl implements LedgerRepository {
     }
 
     @Override
-    public List<LedgerEntry> findByWalletIdAndBefore(String walletId, OffsetDateTime before) {
+    public List<LedgerEntry> findByWalletIdAndOccurredAt(String walletId, OffsetDateTime occurredAt) {
         return List.of();
     }
 

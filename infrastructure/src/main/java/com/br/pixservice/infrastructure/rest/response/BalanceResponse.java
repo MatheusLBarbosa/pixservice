@@ -9,6 +9,6 @@ import java.time.OffsetDateTime;
 @Data
 @Builder
 public class BalanceResponse {
-    private BigDecimal balance;
+    private String balance;
     private OffsetDateTime asOf;
 }

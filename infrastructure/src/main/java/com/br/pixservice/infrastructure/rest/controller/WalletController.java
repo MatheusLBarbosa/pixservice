@@ -1,16 +1,16 @@
 package com.br.pixservice.infrastructure.rest.controller;
 
+import com.br.pixservice.domain.model.PixKey;
 import com.br.pixservice.domain.model.Wallet;
 import com.br.pixservice.infrastructure.rest.request.CreateWalletRequest;
 import com.br.pixservice.infrastructure.rest.request.DepositRequest;
 import com.br.pixservice.infrastructure.rest.request.RegisterPixKeyRequest;
 import com.br.pixservice.infrastructure.rest.request.WithdrawRequest;
 import com.br.pixservice.infrastructure.rest.response.BalanceResponse;
+import com.br.pixservice.infrastructure.rest.response.PixKeyResponse;
 import com.br.pixservice.infrastructure.rest.response.WalletResponse;
 import com.br.pixservice.usecase.pix.RegisterPixKeyUseCase;
-import com.br.pixservice.usecase.wallet.CreateWalletUseCase;
-import com.br.pixservice.usecase.wallet.DepositUseCase;
-import com.br.pixservice.usecase.wallet.WithdrawUseCase;
+import com.br.pixservice.usecase.wallet.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +31,8 @@ public class WalletController {
     private final DepositUseCase depositUseCase;
     private final WithdrawUseCase withdrawUseCase;
     private final RegisterPixKeyUseCase registerPixKeyUseCase;
+    private final BalanceUseCase balanceUseCase;
+    private final HistoricalBalanceUseCase historicalBalanceUseCase;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -47,18 +49,35 @@ public class WalletController {
 
     @PostMapping("/{id}/pix-keys")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void registerPixKey(@PathVariable String id, @Valid @RequestBody RegisterPixKeyRequest request) {
-        registerPixKeyUseCase.execute(id, request.getKeyType(), request.getKeyValue());
+    public PixKeyResponse registerPixKey(@PathVariable String id, @Valid @RequestBody RegisterPixKeyRequest request) {
+        PixKey registeredKey = registerPixKeyUseCase.execute(id, request.getKeyType(), request.getKeyValue());
+
+        return PixKeyResponse.builder()
+                .walletId(registeredKey.getWalletId())
+                .type(registeredKey.getType())
+                .key(registeredKey.getKey())
+                .build();
     }
 
     @GetMapping("/{id}/balance")
     public BalanceResponse getBalance(@PathVariable String id,
                                       @RequestParam(value = "at", required = false) String at) {
         OffsetDateTime timestamp = at != null ? OffsetDateTime.parse(at) : OffsetDateTime.now();
-        // Implementar cálculo via LedgerRepository futuramente
+
+        if (at != null) {
+            String balance = historicalBalanceUseCase.execute(id, timestamp);
+
+            return BalanceResponse.builder()
+                    .balance(balance)
+                    .asOf(timestamp)
+                    .build();
+        }
+
+        String balance = balanceUseCase.execute(id);
+
         return BalanceResponse.builder()
-                .balance(BigDecimal.ZERO)
-                .asOf(timestamp)
+                .balance(balance)
+                .asOf(OffsetDateTime.now())
                 .build();
     }
 
@@ -66,7 +85,7 @@ public class WalletController {
     public BalanceResponse deposit(@PathVariable String id, @Valid @RequestBody DepositRequest request) {
         Wallet wallet = depositUseCase.execute(id, request.getAmount(), request.getSource());
         return BalanceResponse.builder()
-                .balance(wallet.getBalance())
+                .balance(wallet.getBalance().toString())
                 .asOf(OffsetDateTime.now())
                 .build();
     }
@@ -75,7 +94,7 @@ public class WalletController {
     public BalanceResponse withdraw(@PathVariable String id, @Valid @RequestBody WithdrawRequest request) {
         Wallet wallet = withdrawUseCase.execute(id, request.getAmount(), request.getReason());
         return BalanceResponse.builder()
-                .balance(wallet.getBalance())
+                .balance(wallet.getBalance().toString())
                 .asOf(OffsetDateTime.now())
                 .build();
     }
