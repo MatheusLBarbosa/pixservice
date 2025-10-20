@@ -120,6 +120,11 @@ O relatório HTML estará disponível em: `build/reports/jacoco/test/html/index.
   - ✅ No-op quando `eventType` é igual ao status atual (ex.: PENDING → PENDING)
   - ✅ Processa `CONFIRMED`: débito/ crédito com controle otimista e registros no ledger
 
+- RegisterPixUseCase
+- CreateWalletUseCase
+- DepositUseCase
+- WithdrawUseCase
+
 Observações:
 - Os testes usam mocks para repositórios e publisher; não há integração real com MongoDB ou RabbitMQ.
 - Para rodar apenas os testes desses casos de uso:

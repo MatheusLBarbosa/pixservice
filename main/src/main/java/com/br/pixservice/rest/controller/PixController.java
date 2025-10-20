@@ -1,4 +1,4 @@
-package com.br.pixservice.infrastructure.rest.controller;
+package com.br.pixservice.rest.controller;
 
 import com.br.pixservice.domain.model.PixTransfer;
 import com.br.pixservice.infrastructure.rest.request.PixTransferRequest;
