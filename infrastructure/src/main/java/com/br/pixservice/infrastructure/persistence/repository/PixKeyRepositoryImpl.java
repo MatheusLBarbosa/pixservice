@@ -20,12 +20,12 @@ public class PixKeyRepositoryImpl implements PixKeyRepository {
     }
 
     @Override
-    public Optional<PixKey> findByKeyValue(String keyValue) {
-        return Optional.empty();
+    public Optional<PixKey> findByKey(String keyValue) {
+        return repository.findByKey(keyValue).map(PixKeyDAO::toDomain);
     }
 
     @Override
-    public boolean existsByKeyValue(String keyValue) {
+    public boolean existsByKey(String keyValue) {
         return repository.existsByKey(keyValue);
     }
 

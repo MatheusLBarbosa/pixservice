@@ -18,7 +18,7 @@ import java.util.Optional;
 public class PixTranssferRepositoryImpl implements PixTransferRepository {
 
     private final PixTransferMongoRepository repository;
-    private MongoTemplate template;
+    private final MongoTemplate template;
 
     @Override
     public PixTransfer save(PixTransfer transfer) {

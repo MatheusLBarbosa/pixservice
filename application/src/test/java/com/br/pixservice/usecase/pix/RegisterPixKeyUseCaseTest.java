@@ -28,7 +28,7 @@ class RegisterPixKeyUseCaseTest {
         String type = "CPF";
         String key = "12345678901";
 
-        when(repository.existsByKeyValue(key)).thenReturn(false);
+        when(repository.existsByKey(key)).thenReturn(false);
         when(repository.save(any(PixKey.class))).thenAnswer(invocation -> {
             PixKey arg = invocation.getArgument(0);
             return PixKey.builder()
@@ -46,7 +46,7 @@ class RegisterPixKeyUseCaseTest {
         assertEquals(type, created.getType());
         assertEquals(walletId, created.getWalletId());
 
-        verify(repository).existsByKeyValue(key);
+        verify(repository).existsByKey(key);
         verify(repository).save(any(PixKey.class));
     }
 
@@ -57,13 +57,13 @@ class RegisterPixKeyUseCaseTest {
         String type = "CPF";
         String key = "12345678901";
 
-        when(repository.existsByKeyValue(key)).thenReturn(true);
+        when(repository.existsByKey(key)).thenReturn(true);
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> useCase.execute(walletId, type, key));
 
         assertEquals("Pix Key is already registered to this wallet", ex.getMessage());
-        verify(repository).existsByKeyValue(key);
+        verify(repository).existsByKey(key);
         verify(repository, never()).save(any());
     }
 }

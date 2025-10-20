@@ -9,7 +9,6 @@ import com.br.pixservice.domain.service.PixRecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -27,7 +26,6 @@ public class PixWebhookUseCase {
     private final LedgerRepository ledgerRepository;
     private final PixRecordService service;
 
-    @Transactional
     public void execute(String eventId, String endToEndId, String eventType, OffsetDateTime occurredAt) {
         service.execute("PIX_WEBHOOK", eventId, () -> {
             processWebhook(endToEndId, eventType, occurredAt);
@@ -46,6 +44,11 @@ public class PixWebhookUseCase {
         PixStatus newStatus = PixStatus.valueOf(eventType);
 
         log.info("Current status: {}, Requested status: {}", currentStatus, newStatus);
+
+        if (currentStatus == newStatus) {
+            log.info("No-op state update - transfer already in {}: {}", currentStatus, endToEndId);
+            return;
+        }
 
         if (!isValidTransition(currentStatus, newStatus)) {
             log.warn("Invalid state transition - from {} to {} for endToEndId: {}",
@@ -66,6 +69,9 @@ public class PixWebhookUseCase {
     }
 
     private boolean isValidTransition(PixStatus from, PixStatus to) {
+        if (from == to) {
+            return true;
+        }
         return switch (from) {
             case PENDING -> to == PixStatus.CONFIRMED || to == PixStatus.REJECTED;
             case CONFIRMED, REJECTED -> false;
@@ -80,10 +86,13 @@ public class PixWebhookUseCase {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Source wallet not found: " + transfer.getSourceWalletId()));
 
-        // 2. Buscar chave PIX destino
-        PixKey receiverKey = pixKeyRepository.findByKeyValue(transfer.getTargetWalletId())
+        Wallet receiver = walletRepository.findById(transfer.getTargetWalletId())
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Destination Pix key not found: " + transfer.getTargetWalletId()));
+                        "Receiver wallet not found: " + transfer.getTargetWalletId()));
+//        // 2. Buscar chave PIX destino
+//        PixKey receiverKey = pixKeyRepository.findByKey(transfer.getTargetPixKey())
+//                .orElseThrow(() -> new IllegalArgumentException(
+//                        "Destination Pix key not found: " + transfer.getTargetPixKey()));
 
         // 3. Validar saldo
         if (sender.getBalance().compareTo(transfer.getAmount()) < 0) {
@@ -117,9 +126,7 @@ public class PixWebhookUseCase {
         ledgerRepository.save(debitEntry);
 
         // 6. CRÉDITO - Carteira destino
-        Wallet receiver = walletRepository.findById(receiverKey.getWalletId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Receiver wallet not found: " + receiverKey.getWalletId()));
+
 
         BigDecimal newReceiverBalance = receiver.getBalance().add(transfer.getAmount());
         boolean receiverUpdated = walletRepository.updateBalance(

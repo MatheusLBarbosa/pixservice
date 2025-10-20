@@ -12,7 +12,7 @@ public class RegisterPixKeyUseCase {
     private final PixKeyRepository repository;
 
     public PixKey execute(String walletId, String keyType, String keyValue) {
-        if(repository.existsByKeyValue(keyValue)){
+        if(repository.existsByKey(keyValue)){
             throw new IllegalArgumentException("Pix Key is already registered to this wallet");
         }
 

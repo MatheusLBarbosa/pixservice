@@ -8,9 +8,9 @@ public interface PixKeyRepository {
 
     PixKey save(PixKey pixKey);
 
-    Optional<PixKey> findByKeyValue(String keyValue);
+    Optional<PixKey> findByKey(String keyValue);
 
-    boolean existsByKeyValue(String keyValue);
+    boolean existsByKey(String keyValue);
 
     boolean existsByKeyValueAndWalletId(String keyValeu, String walletId);
 }

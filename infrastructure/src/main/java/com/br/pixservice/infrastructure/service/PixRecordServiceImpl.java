@@ -54,7 +54,6 @@ public class PixRecordServiceImpl implements PixRecordService {
         }
     }
 
-    @Transactional
     public <T> void saveRecord(String scope, String key, T result) {
         try {
             String serializedResult = mapper.writeValueAsString(result);

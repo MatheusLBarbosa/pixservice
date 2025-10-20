@@ -18,7 +18,6 @@ public class WithdrawUseCase {
     private final WalletRepository walletRepository;
     private final LedgerRepository ledgerRepository;
 
-    @Transactional
     public Wallet execute(String walletId, BigDecimal amount, String reason) {
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new IllegalArgumentException("Wallet not exists"));
