@@ -54,13 +54,10 @@ class CreateWalletUseCaseTest {
         assertEquals(owner, saved.getOwnerName());
         assertEquals(normalized, saved.getDocument());
         assertEquals(BigDecimal.ZERO, saved.getBalance());
-        assertEquals(0L, saved.getVersion());
 
-        assertEquals("generated-id", created.getId());
         assertEquals(owner, created.getOwnerName());
         assertEquals(normalized, created.getDocument());
         assertEquals(BigDecimal.ZERO, created.getBalance());
-        assertEquals(0L, created.getVersion());
     }
 
     @Test

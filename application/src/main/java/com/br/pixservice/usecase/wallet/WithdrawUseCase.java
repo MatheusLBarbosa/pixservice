@@ -20,7 +20,7 @@ public class WithdrawUseCase {
 
     public Wallet execute(String walletId, BigDecimal amount, String reason) {
         Wallet wallet = walletRepository.findById(walletId)
-                .orElseThrow(() -> new IllegalArgumentException("Wallet not exists"));
+                .orElseThrow(() -> new IllegalArgumentException("Wallet not found"));
 
         if (wallet.getBalance().compareTo(amount) < 0) {
             throw new IllegalStateException("Insufficient balance");

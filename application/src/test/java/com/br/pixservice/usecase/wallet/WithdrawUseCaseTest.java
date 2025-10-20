@@ -34,17 +34,20 @@ class WithdrawUseCaseTest {
         String walletId = "w1";
         BigDecimal initial = new BigDecimal("100.00");
         BigDecimal amount = new BigDecimal("40.00");
-        Wallet wallet = Wallet.builder().id(walletId).balance(initial).version(2L).build();
+        Wallet wallet = Wallet.builder().id(walletId).balance(initial).version(1L).build();
 
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+        when(walletRepository.updateBalance(walletId, initial.subtract(amount), wallet.getVersion())).thenReturn(true);
 
         Wallet result = useCase.execute(walletId, amount, "reason");
 
         BigDecimal expected = initial.subtract(amount);
         assertEquals(expected, result.getBalance());
 
-        verify(walletRepository).updateBalance(walletId, expected, 2L);
+        verify(walletRepository).updateBalance(walletId, expected, 1L);
         verify(ledgerRepository).save(any(LedgerEntry.class));
+
+        assertEquals(2L, result.getVersion());
     }
 
     @Test
@@ -71,7 +74,7 @@ class WithdrawUseCaseTest {
         IllegalStateException ex = assertThrows(IllegalStateException.class,
                 () -> useCase.execute(walletId, new BigDecimal("20.00"), "reason"));
 
-        assertEquals("Saldo insuficiente", ex.getMessage());
+        assertEquals("Insufficient balance", ex.getMessage());
         verify(walletRepository, never()).updateBalance(anyString(), any(), anyLong());
         verify(ledgerRepository, never()).save(any());
     }

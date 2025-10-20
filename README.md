@@ -110,6 +110,22 @@ O relatório HTML estará disponível em: `build/reports/jacoco/test/html/index.
 ./gradlew.bat :infrastructure:test
 ```
 
+### Escopo dos testes unitários adicionados
+
+- PixTransferUseCase
+  - ✅ Cria transferência com saldo suficiente e publica evento no RabbitMQ
+  - ✅ Falha com `IllegalStateException` quando o saldo é insuficiente
+
+- PixWebhookUseCase
+  - ✅ No-op quando `eventType` é igual ao status atual (ex.: PENDING → PENDING)
+  - ✅ Processa `CONFIRMED`: débito/ crédito com controle otimista e registros no ledger
+
+Observações:
+- Os testes usam mocks para repositórios e publisher; não há integração real com MongoDB ou RabbitMQ.
+- Para rodar apenas os testes desses casos de uso:
+  - `./gradlew :application:test --tests "*PixTransferUseCaseTest"`
+  - `./gradlew :application:test --tests "*PixWebhookUseCaseTest"`
+
 ## 🌐 Documentação e Observabilidade
 
 - Swagger UI: `http://localhost:8080/swagger-ui/index.html`
@@ -369,6 +385,35 @@ Devido ao prazo limitado, as seguintes decisões foram tomadas:
 - Prometheus + Grafana
 - ELK Stack
 - APM (Application Performance Monitoring)
+
+### Lacunas explícitas da solução (Gaps)
+
+- Webhook resiliente
+  - Hoje erros internos durante o processamento do webhook resultam em 5xx. Ideal: responder 202 Accepted e enfileirar para retry/DLQ, mantendo o publisher desacoplado de falhas transitórias.
+
+- Padronização de Jackson
+  - Há uso misto de pacotes (ex.: `tools.jackson` vs `com.fasterxml.jackson`). Padronizar em um único artefato para reduzir fricção em builds/testes e tooling.
+
+- Garantias de idempotência
+  - O serviço de idempotência persiste resultados assíncronos; perda do processo pode deixar lacunas. Ideal: Outbox/Transação com write-ahead e confirmação.
+
+- Conciliação financeira e consistência
+  - Falta reconciliação periódica do ledger com saldos de carteiras; em caso de falhas parciais, não há rotina de auto-healing.
+
+- Ausência de testes de integração
+  - Não validamos operações reais com MongoDB e RabbitMQ (Testcontainers). Riscos de incompatibilidades em produção.
+
+- Políticas de retry/backoff
+  - Falta retry exponencial para chamadas de webhook e operações críticas. Ideal: Spring Retry com circuit breaker.
+
+- Segurança e compliance
+  - Falta autenticação/autorização nos endpoints, validação avançada de documentos (CPF/CNPJ) e trilhas de auditoria assinadas.
+
+- Observabilidade
+  - Não há métricas de negócio (ex.: taxa de confirmações, volume transacionado, latências por operação) nem tracing distribuído.
+
+- Robustez em concorrência extrema
+  - Locks em memória e controle otimista atendem ao escopo, mas podem sofrer under high contention. Ideal: locks distribuídos e/ou fila para serialização por wallet.
 
 ### Justificativas de Priorização
 

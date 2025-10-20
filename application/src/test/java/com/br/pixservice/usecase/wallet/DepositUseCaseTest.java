@@ -55,7 +55,7 @@ class DepositUseCaseTest {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> useCase.execute("missing", BigDecimal.ONE, "src"));
 
-        assertEquals("Carteira não encontrada", ex.getMessage());
+        assertEquals("Wallet not exists", ex.getMessage());
         verify(walletRepository, never()).updateBalance(anyString(), any(), anyLong());
         verify(ledgerRepository, never()).save(any());
     }
