@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.UUID;
 
 @Data
 @Builder
@@ -17,8 +16,10 @@ public class PixTransfer {
 
     private String id;
     private String endToEndId;
+    private String idempotencyKey;
     private String sourceWalletId;
     private String targetWalletId;
+    private String targetPixKey;
     private BigDecimal amount;
     private PixStatus status;
     private Instant createdAt;
@@ -62,5 +63,17 @@ public class PixTransfer {
 
     public boolean isSameWallet() {
         return sourceWalletId != null && sourceWalletId.equals(targetWalletId);
+    }
+
+    public static PixTransfer buildPixTransfer(BigDecimal amount, String endToEndId, Wallet sender, PixKey receiverKey, String idempotencyKey) {
+        return PixTransfer.builder()
+                .endToEndId(endToEndId)
+                .idempotencyKey(idempotencyKey)
+                .amount(amount)
+                .status(PixStatus.PENDING)
+                .sourceWalletId(sender.getId())
+                .targetWalletId(receiverKey.getWalletId())
+                .endToEndId(endToEndId)
+                .build();
     }
 }

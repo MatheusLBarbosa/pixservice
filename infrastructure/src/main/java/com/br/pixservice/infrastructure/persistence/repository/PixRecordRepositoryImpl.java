@@ -1,6 +1,6 @@
 package com.br.pixservice.infrastructure.persistence.repository;
 
-import com.br.pixservice.domain.model.PixRecord;
+import com.br.pixservice.domain.model.IdempotencyRecord;
 import com.br.pixservice.domain.repository.PixRecordRepository;
 import com.br.pixservice.infrastructure.persistence.dao.PixRecordDAO;
 import lombok.RequiredArgsConstructor;
@@ -15,12 +15,12 @@ public class PixRecordRepositoryImpl implements PixRecordRepository {
     private final PixRecordMongoRepository repository;
 
     @Override
-    public Optional<PixRecord> findByScopeAndKey(String scope, String key) {
+    public Optional<IdempotencyRecord> findByScopeAndKey(String scope, String key) {
         return repository.findByScopeAndKey(scope, key).map(PixRecordDAO::toDomain);
     }
 
     @Override
-    public PixRecord save(PixRecord record) {
+    public IdempotencyRecord save(IdempotencyRecord record) {
         return PixRecordDAO.toDomain(repository.save(PixRecordDAO.toEntity(record)));
     }
 }

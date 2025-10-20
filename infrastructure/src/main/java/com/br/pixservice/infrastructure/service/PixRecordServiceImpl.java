@@ -1,7 +1,7 @@
 package com.br.pixservice.infrastructure.service;
 
-import com.br.pixservice.domain.PixRecordService;
-import com.br.pixservice.infrastructure.persistence.entity.PixRecordEntity;
+import com.br.pixservice.domain.service.PixRecordService;
+import com.br.pixservice.infrastructure.persistence.entity.IdempotencyRecordEntity;
 import com.br.pixservice.infrastructure.persistence.repository.PixRecordMongoRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,7 +35,7 @@ public class PixRecordServiceImpl implements PixRecordService {
         
         lock.lock();
         try {
-            Optional<PixRecordEntity> existingRecord = repository.findByScopeAndKey(scope, key);
+            Optional<IdempotencyRecordEntity> existingRecord = repository.findByScopeAndKey(scope, key);
             
             if (existingRecord.isPresent()) {
                 log.debug("Returning cached result for scope: {} key: {}", scope, key);
@@ -60,7 +60,7 @@ public class PixRecordServiceImpl implements PixRecordService {
             String serializedResult = mapper.writeValueAsString(result);
             String id = generateId(scope, key);
             
-            PixRecordEntity record = PixRecordEntity.builder()
+            IdempotencyRecordEntity record = IdempotencyRecordEntity.builder()
                     .id(id)
                     .scope(scope)
                     .key(key)

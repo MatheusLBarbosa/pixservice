@@ -2,7 +2,6 @@ package com.br.pixservice.infrastructure.persistence.repository;
 
 import com.br.pixservice.infrastructure.persistence.entity.PixKeyEntity;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 

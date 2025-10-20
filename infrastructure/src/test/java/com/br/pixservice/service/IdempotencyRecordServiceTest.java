@@ -1,6 +1,6 @@
 package com.br.pixservice.service;
 
-import com.br.pixservice.infrastructure.persistence.entity.PixRecordEntity;
+import com.br.pixservice.infrastructure.persistence.entity.IdempotencyRecordEntity;
 import com.br.pixservice.infrastructure.persistence.repository.PixRecordMongoRepository;
 import com.br.pixservice.infrastructure.service.PixRecordServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -20,13 +20,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PixRecordService Tests")
-class PixRecordServiceTest {
+class IdempotencyRecordServiceTest {
 
     @Mock
     private PixRecordMongoRepository repository;
@@ -54,7 +55,7 @@ class PixRecordServiceTest {
         Supplier<String> action = () -> TEST_RESULT;
         when(repository.findByScopeAndKey(TEST_SCOPE, TEST_KEY)).thenReturn(Optional.empty());
         when(mapper.writeValueAsString(TEST_RESULT)).thenReturn(TEST_JSON);
-        when(repository.save(any(PixRecordEntity.class))).thenReturn(mock(PixRecordEntity.class));
+        when(repository.save(any(IdempotencyRecordEntity.class))).thenReturn(mock(IdempotencyRecordEntity.class));
 
         // When
         String result = pixRecordService.execute(TEST_SCOPE, TEST_KEY, action, String.class);
@@ -66,14 +67,14 @@ class PixRecordServiceTest {
         assertEquals(TEST_RESULT, result);
         verify(repository).findByScopeAndKey(TEST_SCOPE, TEST_KEY);
         verify(mapper, atLeastOnce()).writeValueAsString(TEST_RESULT);
-        verify(repository, atLeastOnce()).save(any(PixRecordEntity.class));
+        verify(repository, atLeastOnce()).save(any(IdempotencyRecordEntity.class));
     }
 
     @Test
     @DisplayName("Should return cached result when existing record found")
     void shouldReturnCachedResultWhenExistingRecordFound() throws JsonProcessingException {
         // Given
-        PixRecordEntity existingEntity = PixRecordEntity.builder()
+        IdempotencyRecordEntity existingEntity = IdempotencyRecordEntity.builder()
                 .id("PIX_TRANSFER:request-123")
                 .scope(TEST_SCOPE)
                 .key(TEST_KEY)
@@ -91,14 +92,14 @@ class PixRecordServiceTest {
         assertEquals(TEST_RESULT, result);
         verify(repository).findByScopeAndKey(TEST_SCOPE, TEST_KEY);
         verify(mapper).readValue(TEST_JSON, String.class);
-        verify(repository, never()).save(any(PixRecordEntity.class));
+        verify(repository, never()).save(any(IdempotencyRecordEntity.class));
     }
 
     @Test
     @DisplayName("Should throw exception when deserialization fails")
     void shouldThrowExceptionWhenDeserializationFails() throws JsonProcessingException {
         // Given
-        PixRecordEntity existingEntity = PixRecordEntity.builder()
+        IdempotencyRecordEntity existingEntity = IdempotencyRecordEntity.builder()
                 .result(TEST_JSON)
                 .build();
 
@@ -123,7 +124,7 @@ class PixRecordServiceTest {
                 pixRecordService.saveRecord(TEST_SCOPE, TEST_KEY, TEST_RESULT));
 
         assertEquals("Failed to serialize result", exception.getMessage());
-        verify(repository, never()).save(any(PixRecordEntity.class));
+        verify(repository, never()).save(any(IdempotencyRecordEntity.class));
     }
 
     @Test
@@ -131,21 +132,21 @@ class PixRecordServiceTest {
     void shouldHandleDuplicateKeyExceptionInSaveRecord() throws JsonProcessingException {
         // Given
         when(mapper.writeValueAsString(TEST_RESULT)).thenReturn(TEST_JSON);
-        when(repository.save(any(PixRecordEntity.class)))
+        when(repository.save(any(IdempotencyRecordEntity.class)))
                 .thenThrow(new DuplicateKeyException("Duplicate key"));
 
         // When & Then
         assertThrows(DuplicateKeyException.class, () ->
                 pixRecordService.saveRecord(TEST_SCOPE, TEST_KEY, TEST_RESULT));
 
-        verify(repository).save(any(PixRecordEntity.class));
+        verify(repository).save(any(IdempotencyRecordEntity.class));
     }
 
     @Test
     @DisplayName("Should test deserializeResult method through execute")
     void shouldTestDeserializeResultThroughExecute() throws JsonProcessingException {
         // Given
-        PixRecordEntity entity = PixRecordEntity.builder()
+        IdempotencyRecordEntity entity = IdempotencyRecordEntity.builder()
                 .result(TEST_JSON)
                 .build();
 
@@ -165,14 +166,14 @@ class PixRecordServiceTest {
     void shouldSaveRecordSuccessfully() throws JsonProcessingException {
         // Given
         when(mapper.writeValueAsString(TEST_RESULT)).thenReturn(TEST_JSON);
-        when(repository.save(any(PixRecordEntity.class))).thenReturn(mock(PixRecordEntity.class));
+        when(repository.save(any(IdempotencyRecordEntity.class))).thenReturn(mock(IdempotencyRecordEntity.class));
 
         // When
         pixRecordService.saveRecord(TEST_SCOPE, TEST_KEY, TEST_RESULT);
 
         // Then
         verify(mapper).writeValueAsString(TEST_RESULT);
-        verify(repository).save(any(PixRecordEntity.class));
+        verify(repository).save(any(IdempotencyRecordEntity.class));
     }
 
     @Test
@@ -180,7 +181,7 @@ class PixRecordServiceTest {
     void shouldSaveRecordAsynchronously() throws JsonProcessingException, ExecutionException, InterruptedException {
         // Given
         when(mapper.writeValueAsString(TEST_RESULT)).thenReturn(TEST_JSON);
-        when(repository.save(any(PixRecordEntity.class))).thenReturn(mock(PixRecordEntity.class));
+        when(repository.save(any(IdempotencyRecordEntity.class))).thenReturn(mock(IdempotencyRecordEntity.class));
 
         // When
         CompletableFuture<Void> future = pixRecordService.saveRecordAsync(TEST_SCOPE, TEST_KEY, TEST_RESULT);
@@ -188,7 +189,7 @@ class PixRecordServiceTest {
 
         // Then
         verify(mapper).writeValueAsString(TEST_RESULT);
-        verify(repository).save(any(PixRecordEntity.class));
+        verify(repository).save(any(IdempotencyRecordEntity.class));
     }
 
     @Test
@@ -203,7 +204,7 @@ class PixRecordServiceTest {
 
         // Then
         verify(mapper).writeValueAsString(TEST_RESULT);
-        verify(repository, never()).save(any(PixRecordEntity.class));
+        verify(repository, never()).save(any(IdempotencyRecordEntity.class));
     }
 
     @Test
@@ -213,7 +214,7 @@ class PixRecordServiceTest {
         Supplier<String> action = () -> TEST_RESULT;
         when(repository.findByScopeAndKey(TEST_SCOPE, TEST_KEY)).thenReturn(Optional.empty());
         when(mapper.writeValueAsString(TEST_RESULT)).thenReturn(TEST_JSON);
-        when(repository.save(any(PixRecordEntity.class))).thenReturn(mock(PixRecordEntity.class));
+        when(repository.save(any(IdempotencyRecordEntity.class))).thenReturn(mock(IdempotencyRecordEntity.class));
 
         // When
         String result1 = pixRecordService.execute(TEST_SCOPE, TEST_KEY, action, String.class);
@@ -233,8 +234,8 @@ class PixRecordServiceTest {
     void shouldGenerateCorrectId() throws JsonProcessingException {
         // Given
         when(mapper.writeValueAsString(TEST_RESULT)).thenReturn(TEST_JSON);
-        when(repository.save(any(PixRecordEntity.class))).thenAnswer(invocation -> {
-            PixRecordEntity entity = invocation.getArgument(0);
+        when(repository.save(any(IdempotencyRecordEntity.class))).thenAnswer(invocation -> {
+            IdempotencyRecordEntity entity = invocation.getArgument(0);
             assertEquals("PIX_TRANSFER:request-123", entity.getId());
             return entity;
         });
@@ -243,14 +244,14 @@ class PixRecordServiceTest {
         pixRecordService.saveRecord(TEST_SCOPE, TEST_KEY, TEST_RESULT);
 
         // Then
-        verify(repository).save(any(PixRecordEntity.class));
+        verify(repository).save(any(IdempotencyRecordEntity.class));
     }
 
     @Test
     @DisplayName("Should handle deserialization failure gracefully in execute")
     void shouldHandleDeserializationFailureGracefullyInExecute() throws JsonProcessingException {
         // Given
-        PixRecordEntity entity = PixRecordEntity.builder()
+        IdempotencyRecordEntity entity = IdempotencyRecordEntity.builder()
                 .result(TEST_JSON)
                 .build();
 
@@ -276,7 +277,7 @@ class PixRecordServiceTest {
 
         // Then
         verify(mapper).writeValueAsString(TEST_RESULT);
-        verify(repository, never()).save(any(PixRecordEntity.class));
+        verify(repository, never()).save(any(IdempotencyRecordEntity.class));
     }
 
     @Test
@@ -288,7 +289,7 @@ class PixRecordServiceTest {
         
         when(repository.findByScopeAndKey(TEST_SCOPE, TEST_KEY)).thenReturn(Optional.empty());
         when(mapper.writeValueAsString(TEST_RESULT)).thenReturn(TEST_JSON);
-        when(repository.save(any(PixRecordEntity.class))).thenReturn(mock(PixRecordEntity.class));
+        when(repository.save(any(IdempotencyRecordEntity.class))).thenReturn(mock(IdempotencyRecordEntity.class));
 
         // When
         String result = pixRecordService.execute(TEST_SCOPE, TEST_KEY, action, String.class);

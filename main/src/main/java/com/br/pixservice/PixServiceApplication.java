@@ -2,8 +2,9 @@ package com.br.pixservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.data.mongodb.config.EnableMongoAuditing;
+import org.springframework.context.annotation.ComponentScan;
 
+@ComponentScan(basePackages = "com.br.*")
 @SpringBootApplication
 public class PixServiceApplication {
 

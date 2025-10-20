@@ -1,13 +1,10 @@
 package com.br.pixservice.infrastructure.service;
 
-import com.br.pixservice.domain.model.LedgerEntry;
 import com.br.pixservice.domain.model.PixTransfer;
 import com.br.pixservice.domain.repository.PixTransferRepository;
 import com.br.pixservice.domain.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor

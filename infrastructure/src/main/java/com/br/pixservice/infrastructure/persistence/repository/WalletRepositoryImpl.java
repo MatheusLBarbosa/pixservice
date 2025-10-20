@@ -3,7 +3,6 @@ package com.br.pixservice.infrastructure.persistence.repository;
 import com.br.pixservice.domain.model.Wallet;
 import com.br.pixservice.domain.repository.WalletRepository;
 import com.br.pixservice.infrastructure.persistence.dao.WalletDAO;
-import com.br.pixservice.infrastructure.persistence.entity.PixTransferEntity;
 import com.br.pixservice.infrastructure.persistence.entity.WalletEntity;
 import com.mongodb.client.result.UpdateResult;
 import lombok.RequiredArgsConstructor;

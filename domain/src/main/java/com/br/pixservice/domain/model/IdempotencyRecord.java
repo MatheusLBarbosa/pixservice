@@ -11,18 +11,18 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PixRecord {
+public class IdempotencyRecord {
 
     private String id;
     private String scope;
     private String key;
-    private String responsePayload;
+    private String payload;
     private Instant createdAt;
 
     public boolean isValid() {
         return scope != null && !scope.trim().isEmpty() &&
                key != null && !key.trim().isEmpty() &&
-               responsePayload != null && !responsePayload.trim().isEmpty();
+               payload != null && !payload.trim().isEmpty();
     }
 
     public boolean isPixTransferRecord() {

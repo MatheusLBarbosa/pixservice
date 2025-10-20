@@ -1,4 +1,4 @@
-package com.br.pixservice.domain;
+package com.br.pixservice.domain.service;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;

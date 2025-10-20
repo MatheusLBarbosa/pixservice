@@ -1,24 +1,25 @@
 package com.br.pixservice.infrastructure.persistence.entity;
 
+import com.br.pixservice.domain.model.PixStatus;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 
-@Document(collection = "pix_transfers")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Document(collection = "pix_transfers")
 public class PixTransferEntity {
 
     @Id
@@ -48,7 +49,4 @@ public class PixTransferEntity {
     @Field("updated_at")
     private Instant updatedAt;
 
-    public enum PixStatus {
-        PENDING, CONFIRMED, REJECTED
-    }
 }

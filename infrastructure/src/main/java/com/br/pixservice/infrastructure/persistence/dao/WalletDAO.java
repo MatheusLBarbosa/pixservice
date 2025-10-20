@@ -4,8 +4,6 @@ import com.br.pixservice.domain.model.Wallet;
 import com.br.pixservice.infrastructure.persistence.entity.WalletEntity;
 import lombok.NoArgsConstructor;
 
-import java.util.Optional;
-
 @NoArgsConstructor
 public class WalletDAO {
     public static Wallet toDomain(WalletEntity entity) {

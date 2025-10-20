@@ -1,18 +1,27 @@
 package com.br.pixservice.usecase.pix;
 
-import com.br.pixservice.domain.PixRecordService;
-import com.br.pixservice.domain.model.*;
-import com.br.pixservice.domain.repository.LedgerRepository;
+import com.br.pixservice.domain.messaging.RabbitPublisher;
+import com.br.pixservice.domain.model.PixKey;
+import com.br.pixservice.domain.model.PixTransfer;
+import com.br.pixservice.domain.model.Wallet;
 import com.br.pixservice.domain.repository.PixKeyRepository;
 import com.br.pixservice.domain.repository.PixTransferRepository;
 import com.br.pixservice.domain.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mongodb.MongoTransactionManager;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
+import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import static com.br.pixservice.domain.model.PixTransfer.buildPixTransfer;
 
 @Component
 @RequiredArgsConstructor
@@ -20,63 +29,59 @@ public class PixTransferUseCase {
     private final WalletRepository walletRepository;
     private final PixKeyRepository pixKeyRepository;
     private final PixTransferRepository pixTransferRepository;
-    private final LedgerRepository ledgerRepository;
-    private final PixRecordService service;
+    private final ObjectMapper objectMapper;
+    private final MongoTransactionManager txManager;
+    private final RabbitPublisher publisher;
 
-    public PixTransfer execute(String idempotencyKey, String fromWalletId, String toPixKey, BigDecimal amount) {
-        return service.execute("PIX_TRANSFER", idempotencyKey, () -> {
-            Wallet sender = walletRepository.findById(fromWalletId)
-                    .orElseThrow(() -> new IllegalArgumentException("Carteira de origem não encontrada"));
+    @Value(value = "${app.rabbitmq.queue}")
+    private String pixQueue;
 
-            PixKey receiverKey = pixKeyRepository.findByKeyValue(toPixKey)
-                    .orElseThrow(() -> new IllegalArgumentException("Chave Pix destino não encontrada"));
+    private final ConcurrentHashMap<String, Lock> walletLocks = new ConcurrentHashMap<>();
 
-            if (sender.getBalance().compareTo(amount) < 0)
-                throw new IllegalStateException("Saldo insuficiente para transferência Pix");
+    @Transactional
+    public PixTransfer execute(String idempotencyKey, String fromWalletId, String targetPixKey, BigDecimal amount) {
 
-            // Gera endToEndId
-            String endToEndId = UUID.randomUUID().toString();
+        Lock lock = walletLocks.computeIfAbsent(fromWalletId, k -> new ReentrantLock());
 
-            // Cria transferência
-            PixTransfer transfer = new PixTransfer(null, endToEndId, fromWalletId, toPixKey,
-                    amount, PixStatus.PENDING, Instant.now(), Instant.now());
-            pixTransferRepository.save(transfer);
-
-            // Débito
-            BigDecimal newBalance = sender.getBalance().subtract(amount);
-            walletRepository.updateBalance(fromWalletId, newBalance, sender.getVersion());
-
-            // Ledger
-            LedgerEntry entry = LedgerEntry.createDebit(fromWalletId, endToEndId, amount);
-            ledgerRepository.save(entry);
-
-            sender.setBalance(newBalance);
-
-            pixSimulatorService(endToEndId);
-            return transfer;
-        }, PixTransfer.class);
-    }
-
-    private void pixSimulatorService(String endToEndId) {
+        lock.lock();
         try {
-            Thread.sleep(ThreadLocalRandom.current().nextInt(2000,5000));
-            boolean isSuccess = Math.random() < 0.9;
+            TransactionTemplate tt = new TransactionTemplate(txManager);
 
-            PixWebhook webhookPayload = PixWebhook.builder().endToEndId(endToEndId.toString())
-                    .eventId(UUID.randomUUID().toString())
-                    .occurredAt(Instant.now())
-                    .build();
+            return tt.execute(status -> {
+                Wallet sender = walletRepository.findById(fromWalletId)
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "Source wallet not found: " + fromWalletId));
 
-            if (isSuccess) {
-                webhookPayload.setStatus(PixStatus.CONFIRMED);
-            } else {
-                webhookPayload.setStatus(PixStatus.REJECTED);
+                PixKey receiverKey = pixKeyRepository.findByKeyValue(targetPixKey)
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "Destination Pix key not found: " + targetPixKey));
+
+                if (sender.getBalance().compareTo(amount) < 0) {
+                    throw new IllegalStateException(
+                            "Insufficient balance - wallet: " + sender.getId() +
+                                    ", balance: " + sender.getBalance() +
+                                    ", required: " + amount);
+                }
+
+                String endToEndId = UUID.randomUUID().toString();
+
+                PixTransfer transfer = buildPixTransfer(amount, endToEndId, sender, receiverKey, idempotencyKey);
+                pixTransferRepository.save(transfer);
+
+                publisher.publish(pixQueue, endToEndId, objectMapper.writeValueAsString(transfer));
+
+                return transfer;
+            });
+        } finally {
+            lock.unlock();
+
+            if (lock.tryLock()) {
+                try {
+                    walletLocks.remove(fromWalletId, lock);
+                } finally {
+                    lock.unlock();
+                }
             }
-
-            //Resttemplate para chamar endpoint webhook
-
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
 
